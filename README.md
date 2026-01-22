@@ -1,6 +1,17 @@
 # transit-reliability
 
-## Architecture (Slice 2)
+## Slice 3: End-toend journey estimate (live MBTA)
+
+This slice connects real-time MBTA predictions to the ETA uncertainty model
+
+What it does:
+- fetches live predictions at an origin stop and destination stop for a route
+- selects the earliest origin departure whose trip_id is present at the destination
+- computes ETA percentiles (P50/P80/P90) using the headway-based uncertainty heuristic
+- returns a single structured JourneyEstimate result (trip_id, departure, arrival bands, explanation)
+Run: python apps/api_local/run_journey.py
+
+## Slice 2: Architecture
 
 At this stage, the system now includes:
 - a provider layer that fetches live MBTA predictions and normalizes them into domain models
@@ -16,7 +27,7 @@ Key design decision:
 
 This slice of the project establishes the core computation layer that future routing, reliability scoring, and deployment layers will build on. 
 
-## Architecture (early)
+## Slice 1: Foundation
 
 This project separates:
 - **Adapters**: web endpoints, HTTP clients, external API calls
