@@ -31,4 +31,5 @@ class JourneyEstimateResponse(BaseModel):
     trip_id: str
     generated_at: datetime
     eta: EtaResponse
+    summary: str
     reliability: ReliabilityResponse
