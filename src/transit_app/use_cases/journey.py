@@ -2,6 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 from transit_app.services.eta import EtaEstimate
+from transit_app.services.reliability import ReliabilityReport, ReliabilityScorer
 
 @dataclass(frozen=True)
 class JourneyEstimate:
@@ -15,6 +16,7 @@ class JourneyEstimate:
     route_id: str
     trip_id: str
     eta: EtaEstimate
+    reliability: ReliabilityReport
     generated_at: datetime
 
 from typing import Optional
@@ -29,14 +31,10 @@ class JourneyEstimator:
     a full journey ETA estimate.
     """
 
-    def __init__(
-        self,
-        *,
-        mbta_client: MbtaV3Client,
-        eta_estimator: EtaEstimator,
-    ) -> None:
+    def __init__(self, *, mbta_client: MbtaV3Client, eta_estimator: EtaEstimator, reliability_scorer: ReliabilityScorer) -> None:
         self._mbta = mbta_client
         self._eta = eta_estimator
+        self._rel = reliability_scorer
 
     def estimate(
         self,
@@ -121,11 +119,20 @@ class JourneyEstimator:
             destination_arrival=dest_time,
             second_origin_departure=second_dep,
         )
+        used_default_headway = eta.headway_seconds is None
+        had_destination_match = True
+
+        reliability = self._rel.score(
+            headway_seconds=eta.headway_seconds,
+            used_default_headway=used_default_headway,
+            had_destination_match=had_destination_match,
+        )
         return JourneyEstimate(
             origin_stop_id=origin_stop_id,
             destination_stop_id=destination_stop_id,
             route_id=route_id,
             trip_id=chosen.trip_id,
             eta=eta,
+            reliability=reliability,
             generated_at=now,
         )

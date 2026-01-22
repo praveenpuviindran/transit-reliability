@@ -3,6 +3,7 @@ import pytest
 from transit_app.domain.models import Prediction
 from transit_app.services.eta import EtaEstimator
 from transit_app.use_cases.journey import JourneyEstimator
+from transit_app.services.reliability import ReliabilityScorer
 
 class FakeMbtaClient:
     def get_predictions(self, *, stop_id, route_id, limit=10, sort=None):
@@ -53,6 +54,7 @@ def test_journey_estimator_end_to_end():
     estimator = JourneyEstimator(
         mbta_client=FakeMbtaClient(),
         eta_estimator=EtaEstimator(),
+        reliability_scorer=ReliabilityScorer(),
     )
 
     now = datetime(2026, 1, 20, 12, 0, tzinfo=timezone.utc)
