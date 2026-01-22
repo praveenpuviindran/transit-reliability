@@ -17,7 +17,7 @@ def _parse_time(value: Any) -> Optional[datetime]:
     except ValueError:
         return None
     
-def predictions_from_mbta(payload: dict[str, Any]) -> list[Predictions]:
+def predictions_from_mbta(payload: dict[str, Any]) -> list[Prediction]:
     data = payload.get("data", [])
     out: list[Prediction] = []
 
