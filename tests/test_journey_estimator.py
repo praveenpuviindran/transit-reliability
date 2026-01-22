@@ -66,4 +66,4 @@ def test_journey_estimator_end_to_end():
 
     assert result.trip_id == "trip-1"
     assert result.eta.p50_arrival > now
-    assert result.eta.p90_arrival >= result.eta.p80_arrival >= result.eta.p50_arrival
+    assert result.eta.p50_arrival <= result.eta.p80_arrival <= result.eta.p90_arrival
