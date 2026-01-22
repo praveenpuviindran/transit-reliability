@@ -1,6 +1,6 @@
 # transit-reliability
 
-## Slice 3: End-toend journey estimate (live MBTA)
+## Slice 3: End-to-end journey estimate (live MBTA)
 
 This slice connects real-time MBTA predictions to the ETA uncertainty model
 
