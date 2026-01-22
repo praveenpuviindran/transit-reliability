@@ -1,5 +1,19 @@
 # transit-reliability
 
+## Slice 5: Local API (FastAPI)
+
+A local FastAPI service exposes the core journey estimation as an HTTP endpoint.
+Run: uvicorn apps.api_local.main:app --reload 
+
+## Slice 4: Reliability score and explanation
+
+The journey estimate now includes a reliability score (0-100) plus short reasons.
+Current scoring is a simple, explainable heuristic based on:
+- Headway (service frequency proxy)
+- Whether conservative defaults were used due to missing live signals
+
+This layer is designed to be replaced later with calibrated statistical models or historical reliability estimates.
+
 ## Slice 3: End-to-end journey estimate (live MBTA)
 
 This slice connects real-time MBTA predictions to the ETA uncertainty model
