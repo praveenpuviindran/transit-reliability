@@ -1,5 +1,13 @@
 # transit-reliability
 
+## Slice 6: Web UI + Presentation Layer
+
+- Added a static web UI for selecting origin, destination, and route.
+- Connected the UI to the local FastAPI backend via a POST /estimate endpoint.
+- Introduced a presenter layer to convert structured journey estimates into a human-readable summary.
+- Preserved raw JSON output for debugging while presenting clean text to end users.
+- Configured CORS for local frontend–backend development.
+
 ## Slice 5: Local API (FastAPI)
 
 A local FastAPI service exposes the core journey estimation as an HTTP endpoint.
