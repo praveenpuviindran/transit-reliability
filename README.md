@@ -1,5 +1,14 @@
 # transit-reliability
 
+## Slice 7: SQL Reference Data + AWS S3 Integration
+
+- Built a SQL-backed reference data pipeline using GTFS to generate stops and routes.
+- Introduced a repository layer to provide clean access to reference data without exposing storage details.
+- Added a pluggable storage abstraction supporting both local files and AWS S3.
+- Uploaded reference JSON artifacts to AWS S3 and verified live reads through the application code.
+- Integrated AWS using IAM credentials and the AWS CLI while staying entirely within the free tier.
+- Kept all ETA, reliability, and journey estimation logic unchanged while swapping infrastructure.
+
 ## Slice 6: Web UI + Presentation Layer
 
 - Added a static web UI for selecting origin, destination, and route.

@@ -12,6 +12,8 @@ dependencies = [
   "requests",
   "fastapi",
   "uvicorn",
+  "pytest",
+  "boto3"
 ]
 
 [project.optional-dependencies]
@@ -24,3 +26,9 @@ package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.poetry.dependencies]
+python = ">=3.10"
+requests = "^2.32"
+boto3 = "^1.34"
+
