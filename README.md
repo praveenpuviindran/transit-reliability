@@ -1,5 +1,51 @@
 # transit-reliability
 
+## Project Status & Scope Boundary
+
+This project intentionally focuses on the modeling, reliability, and backend inference layers of a real-time transit ETA system.
+
+The core objective is to produce confidence-aware arrival estimates—including probabilistic ETA windows (p50 / p80 / p90) and an explicit reliability score with interpretable reasons—rather than a fully polished frontend application.
+
+A minimal web UI is included for demonstration purposes only. In production, this service is designed to be consumed by:
+
+mobile or web clients,
+
+city operations dashboards,
+
+or downstream analytics and decision systems.
+
+UI/UX polish and frontend routing are intentionally out of scope to keep the project focused on modeling rigor, system design, and deployable inference.
+
+## What This Project Demonstrates
+
+Probabilistic ETA modeling with uncertainty bands
+
+Reliability scoring with human-readable explanations
+
+Clean separation between domain logic, services, and infrastructure
+
+Reference data pipelines using SQL and cloud-backed artifacts
+
+Pluggable storage (local and S3) without changing core logic
+
+Fully tested inference logic (unit + integration)
+
+Deployed API endpoint suitable for real-time consumption
+
+## Future Extensions
+
+If extended further, the next steps would include:
+
+Replacing heuristic reliability scoring with a learned calibration model
+
+Training ETA uncertainty bands from historical trip distributions
+
+Adding model monitoring for service drift and anomaly detection
+
+Separating real-time ingestion from inference via streaming pipelines
+
+These extensions were intentionally excluded to maintain focus on core modeling and reliability design, rather than infrastructure breadth.
+
 ## Slice 7: SQL Reference Data + AWS S3 Integration
 
 - Built a SQL-backed reference data pipeline using GTFS to generate stops and routes.
