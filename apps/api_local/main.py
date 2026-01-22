@@ -2,8 +2,9 @@ from __future__ import annotations
 
 from datetime import datetime
 from zoneinfo import ZoneInfo
-
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, HTTPException
+from transit_app.presenters.journey_presenter import JourneyPresenter
 
 from transit_app.config.settings import Settings
 from transit_app.http.api_models import (
@@ -20,6 +21,16 @@ from transit_app.use_cases.journey import JourneyEstimator
 
 app = FastAPI(title="Transit Reliability API")
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://127.0.0.1:5173",
+        "http://localhost:5173",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.post("/estimate", response_model=JourneyEstimateResponse)
 def estimate(req: EstimateRequest) -> JourneyEstimateResponse:
@@ -42,6 +53,7 @@ def estimate(req: EstimateRequest) -> JourneyEstimateResponse:
             route_id=req.route_id,
             now=now,
         )
+        summary = JourneyPresenter.to_summary(result)
     except RuntimeError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -61,4 +73,5 @@ def estimate(req: EstimateRequest) -> JourneyEstimateResponse:
             score=result.reliability.score,
             reasons=result.reliability.reasons,
         ),
+        summary=summary,
     )

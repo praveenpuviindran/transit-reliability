@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Transit Reliability + ETA</title>
+    <style>
+      body { font-family: system-ui, -apple-system, sans-serif; margin: 32px; max-width: 900px; }
+      .row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+      label { font-size: 12px; color: #444; display: block; margin-bottom: 6px; }
+      select, input, button { width: 100%; padding: 10px; font-size: 14px; }
+      button { cursor: pointer; }
+      .card { margin-top: 16px; padding: 14px; border: 1px solid #ddd; border-radius: 10px; }
+      pre { background: #f6f6f6; padding: 12px; border-radius: 8px; overflow: auto; }
+      .muted { color: #666; font-size: 13px; }
+    </style>
+  </head>
+  <body>
+    <h1>Transit Reliability + ETA</h1>
+    <p class="muted">Select stops and a route, then request a live estimate from your local API.</p>
+
+    <div class="row">
+      <div>
+        <label>Origin</label>
+        <select id="origin"></select>
+      </div>
+      <div>
+        <label>Destination</label>
+        <select id="destination"></select>
+      </div>
+      <div>
+        <label>Route</label>
+        <select id="route"></select>
+      </div>
+    </div>
+
+    <div style="margin-top: 12px;">
+      <button id="go">Estimate</button>
+    </div>
+
+    <div class="card" id="result" style="display:none;">
+        <h3>Result</h3>
+
+        <div id="summary" style="font-size:16px; line-height:1.4; margin-bottom:12px;"></div>
+
+        <div class="muted" style="margin-bottom:8px;">Details (debug):</div>
+        <pre id="json"></pre>
+    </div>
+
+    <script>
+      const API_BASE = "http://127.0.0.1:8000";
+
+      async function loadJson(path) {
+        const res = await fetch(path);
+        if (!res.ok) throw new Error(`Failed to load ${path}: ${res.status}`);
+        return res.json();
+      }
+
+      function fillSelect(selectEl, items, getValue, getLabel) {
+        selectEl.innerHTML = "";
+        for (const item of items) {
+          const opt = document.createElement("option");
+          opt.value = getValue(item);
+          opt.textContent = getLabel(item);
+          selectEl.appendChild(opt);
+        }
+      }
+
+      async function init() {
+        const stops = await loadJson("../../data/reference/stops_min.json");
+        const routes = await loadJson("../../data/reference/routes_min.json");
+
+        // Simple alphabetical sort for usability
+        stops.sort((a, b) => a.stop_name.localeCompare(b.stop_name));
+
+        fillSelect(
+          document.getElementById("origin"),
+          stops,
+          s => s.stop_id,
+          s => `${s.stop_name} (${s.stop_id})`
+        );
+
+        fillSelect(
+          document.getElementById("destination"),
+          stops,
+          s => s.stop_id,
+          s => `${s.stop_name} (${s.stop_id})`
+        );
+
+        // Prefer showing long name if present
+        fillSelect(
+          document.getElementById("route"),
+          routes,
+          r => r.route_id,
+          r => (r.route_long_name || r.route_short_name || r.route_id)
+        );
+
+        // Set helpful defaults if present
+        document.getElementById("origin").value = "place-davis";
+        document.getElementById("destination").value = "place-harsq";
+        document.getElementById("route").value = "Red";
+      }
+
+      async function estimate() {
+        const origin_stop_id = document.getElementById("origin").value;
+        const destination_stop_id = document.getElementById("destination").value;
+        const route_id = document.getElementById("route").value;
+
+        const payload = { origin_stop_id, destination_stop_id, route_id };
+
+        const res = await fetch(`${API_BASE}/estimate`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        const body = await res.json();
+
+        document.getElementById("result").style.display = "block";
+        document.getElementById("summary").textContent = body.summary || "No summary available.";
+        document.getElementById("json").textContent = JSON.stringify(body, null, 2);
+      }
+
+      document.getElementById("go").addEventListener("click", estimate);
+      init().catch(err => alert(err.message));
+    </script>
+  </body>
+</html>
