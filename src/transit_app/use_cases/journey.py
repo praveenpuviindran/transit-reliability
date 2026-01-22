@@ -71,40 +71,56 @@ class JourneyEstimator:
             raise RuntimeError("No departures with valid times at origin stop")
 
         origin_preds.sort(key=lambda p: p.departure_time)
-        chosen = origin_preds[0]
 
-        # 3) Find headway (second departure on same route/direction)
-        second_dep: Optional[datetime] = None
-        if len(origin_preds) > 1:
-            second_dep = origin_preds[1].departure_time
-
-        # 4) Fetch destination predictions for the same trip
+        # Fetch destination predictions once and index by trip_id
         dest_raw = self._mbta.get_predictions(
             stop_id=destination_stop_id,
-            route_id=route_id,
-            limit=10,
+         route_id=route_id,
+            limit=25,
         )
         dest_preds = predictions_from_mbta(dest_raw)
 
-        dest_match = None
+        # Build a map: trip_id -> best available destination time (prefer arrival_time)
+        dest_time_by_trip: dict[str, datetime] = {}
         for p in dest_preds:
-            if p.trip_id == chosen.trip_id and p.arrival_time is not None:
-                dest_match = p
+            if not p.trip_id:
+                continue
+            t = p.arrival_time or p.departure_time
+            if t is None:
+                continue
+            # If multiple records exist for same trip, keep the earliest time
+            if p.trip_id not in dest_time_by_trip or t < dest_time_by_trip[p.trip_id]:
+                dest_time_by_trip[p.trip_id] = t
+
+        # Now choose the first origin departure whose trip appears at destination
+        chosen: Prediction | None = None
+        second_dep: Optional[datetime] = None
+        dest_time: Optional[datetime] = None
+
+        for i, cand in enumerate(origin_preds):
+            if not cand.trip_id or cand.departure_time is None:
+                continue
+            if cand.trip_id in dest_time_by_trip:
+                chosen = cand
+                dest_time = dest_time_by_trip[cand.trip_id]
+                # headway = next departure after chosen (if any)
+                if i + 1 < len(origin_preds):
+                    second_dep = origin_preds[i + 1].departure_time
                 break
 
-        if dest_match is None:
+        if chosen is None or dest_time is None:
             raise RuntimeError(
-                f"No destination prediction found for trip {chosen.trip_id}"
+                "No matching destination prediction found for upcoming origin departures. "
+                "Try a closer destination stop or increase prediction limits."
             )
 
-        # 5) Estimate ETA
+        # Estimate ETA using chosen origin departure and matched destination time
         eta = self._eta.estimate(
             now=now,
             origin_departure=chosen.departure_time,
-            destination_arrival=dest_match.arrival_time,
+            destination_arrival=dest_time,
             second_origin_departure=second_dep,
         )
-
         return JourneyEstimate(
             origin_stop_id=origin_stop_id,
             destination_stop_id=destination_stop_id,
